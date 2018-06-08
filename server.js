@@ -18,6 +18,12 @@ app.get('/', (req, res) => {
     res.json("Hello the api is working!");
 });
 
+app.post('/login', (req,res) => {
+    const values = req.body
+    console.log(values);
+    res.json("Hello")
+})
+
 
 const port = process.env.PORT || 2000
 app.listen(port, () => {

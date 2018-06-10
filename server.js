@@ -32,14 +32,16 @@ app.get('/', (req, res) => {
 
 app.post('/login', (req,res) => {
     const values = req.body
-    console.log(values);
     con.query(`SELECT * FROM users where(emailAddress = '${values.email}')`, (err, user) => {
         
         if(err) console.log(err);
         
-        if(user) {
-            bcrypt.compare(values.password, user.password, (err, result) => {
-                if(err) console.log(`***************password didnt match: ${err}`)
+        if(user.length) {
+            console.log("*************", user[0].password)
+            console.log("********************", values.password)
+            bcrypt.compare(values.password, user[0].password, (err, isMatch) => {
+                if(err) console.log(`***************There was an error: ${err}`);
+                console.log(isMatch); // Define what happens when passwords match!
             })
         };
     })
@@ -48,9 +50,10 @@ app.post('/login', (req,res) => {
 app.post('/newUser', (req,res) => {
 
     const sub = req.body;
-    console.log(sub);
 
-    bcrypt.hash(sub.password, saltRounds, (err, hash) => {
+    const salt = bcrypt.genSaltSync(saltRounds);
+
+    bcrypt.hash(sub.password, salt, (err, hash) => {
 
         if(err){
             res.json({error: err});
@@ -58,12 +61,12 @@ app.post('/newUser', (req,res) => {
         // else {
         //     console.log(hash);
         // }
-        // else {
-        //     con.query(`INSERT INTO users (firstName, lastName, birthdate, emailAddress, gender, userName, password, created_at, updated_at) VALUES ('${sub.fName}', '${sub.lName}', '${sub.birthday}', '${sub.email}', '${sub.gender}', '${sub.userName}', '${hash}', now(), now());`, function(err, response){
-        //         if (err) console.log(err);
-        //         if (response) console.log(response);
-        //     })
-        // }
+        else {
+            con.query(`INSERT INTO users (firstName, lastName, birthdate, emailAddress, gender, userName, password, created_at, updated_at) VALUES ('${sub.fName}', '${sub.lName}', '${sub.birthday}', '${sub.email}', '${sub.gender}', '${sub.userName}', '${hash}', now(), now());`, function(err, response){
+                if (err) console.log(err);
+                if (response) console.log(response);
+            })
+        }
 
     })
 })

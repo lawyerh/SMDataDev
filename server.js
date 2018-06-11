@@ -15,6 +15,7 @@ app.use(bp.json());
 app.use(cors());
 
 const saltRounds = 10;
+const ROOT_URL = "http://54.245.1.152";
 
 const con = mysql.createConnection({
     host: credentials.host,
@@ -31,11 +32,11 @@ function validateEmail(email) {
 
 //***** ROUTES ********/
 
-app.get('/', (req, res) => {
+app.get(ROOT_URL, (req, res) => {
     res.json("Hello the api is working!");
 });
 
-app.post('/login', (req,res) => {
+app.post(`${ROOT_URL}login`, (req,res) => {
     const values = req.body
     con.query(`SELECT * FROM users where(emailAddress = '${values.email}')`, (err, user) => {
         
@@ -52,7 +53,7 @@ app.post('/login', (req,res) => {
     })
 })
 
-app.post('/newUser', (req,res) => {
+app.post(`${ROOT_URL}/newUser`, (req,res) => {
 
     const sub = req.body;
 
@@ -93,7 +94,7 @@ app.post('/newUser', (req,res) => {
     })
 })
 
-app.post('/checkEmail', (req,res) => {
+app.post(`${ROOT_URL}/checkEmail`, (req,res) => {
     if(req.body.email && req.body.email.length) {
        if(validateEmail(req.body.email)) {
            con.query(`SELECT * FROM users where(emailAddress = '${req.body.email}')`, (err, user) => {
@@ -113,7 +114,7 @@ app.post('/checkEmail', (req,res) => {
     }
 })
 
-app.post('/checkUsername', (req,res) => {
+app.post(`${ROOT_URL}/checkUsername`, (req,res) => {
     if(req.body.username && req.body.username.length) {
            con.query(`SELECT * FROM users where(userName = '${req.body.username}')`, (err, user) => {
                

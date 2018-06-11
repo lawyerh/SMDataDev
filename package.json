@@ -16,6 +16,6 @@
     "mysql": "^2.15.0"
   },
   "dependencies": {
-    "bcrypt": "^2.0.1"
+    "bcrypt-nodejs": "0.0.3"
   }
 }

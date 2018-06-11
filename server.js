@@ -4,7 +4,7 @@ const express = require('express');
 const bp = require('body-parser');
 const mysql = require('mysql');
 const cors = require("cors");
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt-nodejs');
 const credentials = require('./mysqlconnection');
 
 //***** CONFIG ********/

@@ -24,6 +24,11 @@ const con = mysql.createConnection({
     database: credentials.database
 });
 
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
 //***** ROUTES ********/
 
 app.get('/', (req, res) => {
@@ -51,6 +56,8 @@ app.post('/newUser', (req,res) => {
 
     const sub = req.body;
 
+    const securityQuestions = [[sub.securityQuestionOne, sub.securityAnswerOne], [sub.securityQuestionTwo, sub.securityAnswerTwo], [sub.securityQuestionThree, sub.securityAnswerThree]]
+    console.log(sub);
     const salt = bcrypt.genSaltSync(saltRounds);
 
     bcrypt.hash(sub.password, salt, (err, hash) => {
@@ -62,13 +69,65 @@ app.post('/newUser', (req,res) => {
         //     console.log(hash);
         // }
         else {
-            con.query(`INSERT INTO users (firstName, lastName, birthdate, emailAddress, gender, userName, password, created_at, updated_at) VALUES ('${sub.fName}', '${sub.lName}', '${sub.birthday}', '${sub.email}', '${sub.gender}', '${sub.userName}', '${hash}', now(), now());`, function(err, response){
+            con.query(`INSERT INTO users (firstName, lastName, birthdate, emailAddress, gender, userName, password, created_at, updated_at) VALUES ('${sub.fName}', '${sub.lName}', '${sub.birthday}', '${sub.email}', '${sub.gender}', '${sub.username}', '${hash}', now(), now());`, (err, response) => {
                 if (err) console.log(err);
-                if (response) console.log(response);
-            })
-        }
+                if (response) {
+                    con.query(`INSERT INTO address (users_id, cityName, stateName, zipCode, addressLineOne, addressLineTwo, created_at, updated_at) VALUES ('${response.insertId}', '${sub.city}', '${sub.state}', '${sub.zip}', '${sub.address}', '${sub.addressTwo ? sub.addressTwo : null}', now(), now())`, (err, result) => {
+                        if (err) console.log(err);
+                        if(result) console.log(result);
+                    });
+                    for(let idx = 0; idx < 3; idx++) {
+                        con.query(`INSERT INTO securityquestions (users_id, question, answer, created_at, updated_at) VALUES ('${response.insertId}', '${securityQuestions[idx][0]}', '${securityQuestions[idx][1]}', now(), now())`, (err, result) => {
+                            if (err) console.log(err);
+                            if(result) console.log(result);
+                        });
+                    };
+                };
+                res.json({
+                    success: "Account created",
+                    id: response.insertId
+                })
+            });
+        };
 
     })
+})
+
+app.post('/checkEmail', (req,res) => {
+    if(req.body.email && req.body.email.length) {
+       if(validateEmail(req.body.email)) {
+           con.query(`SELECT * FROM users where(emailAddress = '${req.body.email}')`, (err, user) => {
+
+            if(err) console.log(err);
+
+            if(user.length) {
+                res.json(false);
+            }
+
+            else{
+                res.json(true)
+            }
+
+           })
+       }
+    }
+})
+
+app.post('/checkUsername', (req,res) => {
+    if(req.body.username && req.body.username.length) {
+           con.query(`SELECT * FROM users where(userName = '${req.body.username}')`, (err, user) => {
+               
+            if(err) console.log(err);
+
+            if(user.length) {
+                res.json(false);
+            }
+
+            else{
+                res.json(true)
+            }
+       });
+    }
 })
 
 
